@@ -1,0 +1,29 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block title %}
+    | Edit Profile Page
+{% endblock %}
+{% block content %}
+    {% if user.is_authenticated %}
+        {% if user.id == profile.user.id %}
+            <h1>Edit Profile</h1>
+            <div class="form-group">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.media }}
+                    {{ form.as_p }}
+                    <button class="btn btn-secondary">Update Profile</button><br><br>
+                </form>
+            </div>
+
+            <script>
+                var uid = "{{ user.id }}";
+                document.getElementById("user_id").value = uid;
+            </script>
+        {% else %}
+            <h1>You are not the correct person to edit this page. (and you know why..)</h1>
+        {% endif %}
+    {% else %}
+        <h1>You are not allowed here. (and you know why..)</h1>
+    {% endif %}
+{% endblock %}

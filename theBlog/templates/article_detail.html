@@ -1,0 +1,249 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block title %}
+    | {{ post.title_tag }}
+{% endblock %}
+{% block content %}
+        <article class="mu-blog-item">
+            {% if post.header_image %}
+                <a href="{% url 'article-detail' post.pk %}"><img src="{{ post.header_image.url }}" width="100%" height="350"></a>
+            {% endif %}
+            <div class="mu-blog-item-content">
+                <ul class="mu-blog-meta">
+                    <li>BY: <a href="{% url 'show_profile_page' post.author.profile.id %}"> {{ post.author.first_name }} {{ post.author.last_name }}</a>
+                        - Category - <a href="{% url 'category' post.category %}"> {{ post.category }}</a> </li>
+                    <li><a href="{% url 'add_comment' post.id %}"><i class="fa fa-comment-o"></i>{% if post.comments.count > 0 %}{{ post.comments.count }}{% else %}0{% endif %}</a></li>
+                    <li><i class="fa fa-thumbs-o-up"></i>{{ post.likes.count }}</li>
+                    <li><i class="fa fa-calendar-o"></i> {{ post.post_date }} </li>
+                    {% if user.is_authenticated %}
+                        {% if user.id == post.author.id %}
+                            <li><a href="{% url 'update_post' post.pk %}"><i class="fa fa-edit"></i> Edit</a></li>
+                            <li><a href="{% url 'delete_post' post.pk %}"><i class="fa fa-remove"></i> Delete</a></li>
+                        {% endif %}
+                    {% endif %}
+                    <li><div class="fb-share-button" data-href="{{ request.build_absolute_uri }}{{ object.get_absolute_url }}" data-layout="button_count" data-size="small"><a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}{{ object.get_absolute_url }}" class="fb-xfbml-parse-ignore">Share this Article</a></div></li>
+                </ul>
+                <h1 class="mu-blog-item-title">{{ post.title }}</h1>
+                <p>{{ post.body|safe }}</p>
+            </div>
+        </article>
+        <form action="{% url 'like_post' post.pk %}" method="POST">
+            {% csrf_token %}
+            {% if user.is_authenticated %}
+                {% if liked %}
+                    <button class="btn btn-danger btn-sm" name="post_id" type="submit" value="{{ post.id }}">Unlike</button>
+                {% else %}
+                    <button class="btn btn-primary btn-sm" name="post_id" type="submit" value="{{ post.id }}">Like</button>
+                {% endif %}
+            {% else %}
+                <small><a href="{% url 'login' %}">Login</a> to like</small>
+            {% endif %}
+            - {{ total_likes }} Likes
+        </form>
+
+    <br>
+    <div class="card mb-4">
+        <div class="row g-0">
+            <div class="col-2">
+                {% if post.author.profile.profile_pic %}
+                    <img src="{{ post.author.profile.profile_pic.url }}" height="100" width="100">
+                {% else %}
+                    <img src="{% static 'theBlog/images/default_pic.png' %}" class="img-thumbnail">
+                {% endif %}
+            </div>
+            <div class="col-10">
+                <div class="card-body">
+                    <a href="{% url 'show_profile_page' post.author.profile.id %}"><h6 class="card-title">{{ post.author.first_name }} {{ post.author.last_name }}</h6></a>
+
+                    <p class="card-text">{{ post.author.profile.bio }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+        <!-- start blog comment -->
+    <div class="mu-comments-area">
+        <h2>{{ post.comments.count }} {% if post.comments.count > 1 %} Comments {% else %} Comment {% endif %}</h2>
+        <p><a href="{% url 'add_comment' post.pk %}">Add Comment</a></p>
+        {% if not post.comments.all %}
+            No comments yet... <a href="{% url 'add_comment' post.pk %}">Add One</a>
+        {% else %}
+            <div class="comments">
+                <ul class="commentlist">
+                    {% for comment in post.comments.all %}
+                        <li>
+                            <div class="media">
+                                <div class="media-left">
+                                    <img src="{% static 'theBlog/images/default_pic.png' %}" class="media-object news-img">
+                                </div>
+                                <div class="media-body">
+                                    <h4 class="author-name">{{ comment.name }}</h4>
+                                    <span class="comments-date"> Posted on {{ comment.date_added }}</span>
+                                    <p>{{ comment.body }}</p>
+                                    {% comment %}<a class="reply-btn" href="#"><i class="fa fa-reply" aria-hidden="true"></i>Reply</a>{% endcomment %}
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+
+    <!--<p><a href="#">Add Comment</a></p>-->
+    <!-- end blog comment -->
+    <!-- start respond form -->
+    <!--<div id="respond">
+        <h2 class="reply-title">Leave a reply</h2>
+        <form id="commentform">
+            <p class="comment-notes">
+                Your email address will not be published. Required fields are marked <span class="required">*</span>
+            </p>
+            <p class="comment-form-author">
+                <label for="author">Name <span class="required">*</span></label>
+                <input type="text" required="required" name="author">
+            </p>
+            <p class="comment-form-email">
+                <label for="email">Email <span class="required"></span></label>
+                <input type="email" required="required" aria-required="true" name="email">
+            </p>
+            <p class="comment-form-comment">
+                <label for="comment">Comment</label>
+                <textarea required="required" aria-required="true" rows="8" cols="45" name="comment"></textarea>
+            </p>
+            {% comment %}<p class="form-allowed-tags">
+			                          You may use these <abbr title="HyperText Markup Language">HTML</abbr> tags and attributes:  <code>&lt;a href="" title=""&gt; &lt;abbr title=""&gt; &lt;acronym title=""&gt; &lt;b&gt; &lt;blockquote cite=""&gt; &lt;cite&gt; &lt;code&gt; &lt;del datetime=""&gt; &lt;em&gt; &lt;i&gt; &lt;q cite=""&gt; &lt;s&gt; &lt;strike&gt; &lt;strong&gt; </code></p>{% endcomment %}
+            <p class="form-submit">
+                <input type="submit" value="Post Comment" class="mu-send-msg-btn" name="submit">
+            </p>
+        </form>
+    </div>
+    <br><br>-->
+    <!-- end respond form -->
+    {% comment %}<p>
+        <a href="{% url 'home' %}" class="btn btn-secondary">Back Home</a>
+    </p>{% endcomment %}
+{% endblock %}
+{% block sidebar %}
+    <div class="mu-sidebar-widget">
+        <form class="mu-search-form">
+            <input type="search" placeholder="Search">
+            <button class="mu-search-submit-btn" type="submit"><i class="fa fa-search"></i></button>
+        </form>
+    </div>
+    <!-- End single widget -->
+    <!-- start Single Widget -->
+    <div class="mu-sidebar-widget mu-sidebar-social-widget">
+        <h2 class="mu-sidebar-widget-title">Follow {{ post.author.first_name }} {{ post.author.last_name }} on</h2>
+        <div class="mu-social-media">
+            {% if post.author.profile.website_url %}
+                <a target="_blank" href="{{ post.author.profile.website_url }}"><i class="fa fa-link"></i></a>
+            {% endif %}
+            {% if post.author.profile.facebook_url %}
+                <a target="_blank" href="{{ post.author.profile.facebook_url }}"><i class="fa fa-facebook"></i></a>
+            {% endif %}
+            {% if post.author.profile.twitter_url %}
+                <a target="_blank" href="{{ post.author.profile.twitter_url }}"><i class="fa fa-twitter"></i></a>
+            {% endif %}
+            {% if post.author.profile.instagram_url %}
+                <a target="_blank" href="{{ post.author.profile.instagram_url }}"><i class="fa fa-instagram"></i></a>
+            {% endif %}
+            {% if user.profile.pinterest_url %}
+                <a target="_blank" href="{{ user.profile.pinterest_url }}"><i class="fa fa-pinterest-p"></i></a>
+            {% endif %}
+        </div>
+    </div>
+    <!-- End single widget -->
+    <!-- start Single Widget -->
+    <div class="mu-sidebar-widget">
+        <h2 class="mu-sidebar-widget-title">Popular post</h2>
+        <div class="mu-popular-content-widget">
+            {% for pop in popular %}
+            <div class="media">
+            {% if pop.header_image %}
+                <a href="#" class="mu-popular-post-img"><img src="{{ pop.header_image.url }}" alt="image"></a>
+                {% else %}
+                    <a href="#" class="mu-popular-post-img"><img src="{% static 'theBlog/images/blog-img-1.jpg' %}" alt="image"></a>
+                {% endif %}
+                <div class="media-body">
+                    <ul class="mu-blog-meta">
+                        <li>{{ pop.post_date.date }} </li>
+                        <li><a href="#"><i class="fa fa-comment-o"></i>{% if pop.comments.count > 0 %}{{ pop.comments.count }}{% else %}0{% endif %}</a></li>
+                        <li><i class="fa fa-thumbs-o-up"></i>{{ pop.likes.count }}</li>
+                    </ul>
+                    <h3><a href="#">{{ pop.title }}</a></h3>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- End single widget -->
+    <!-- start Single Widget -->
+    <div class="mu-sidebar-widget">
+        <h2 class="mu-sidebar-widget-title">Blog archives</h2>
+        {% regroup post_list by post_date.year as year_list %}
+        <ul class="mu-sidebar-widget-nav">
+            {% for year in year_list %}
+                <li>{{ year.grouper }}
+                {% regroup year.list by post_date.month as month_list %}
+                    <ul>
+                        {% for month in month_list %}
+                            <li><a href="{% comment %}{% url 'blog:post_archive_month' year.grouper month.grouper %}{% endcomment %}">{{ month.list.0.post_date|date:'b' }} ({{ month.list|length }})</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+        {% comment %}
+        <ul class="mu-sidebar-widget-nav">
+            <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>2017 (10)</a></li>
+            <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>2016 (25)</a>
+                <ul>
+                    <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>December</a></li>
+                    <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>November</a></li>
+                    <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>October</a></li>
+                    <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>September</a></li>
+                </ul>
+            </li>
+            <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>2015 (86)</a></li>
+            <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>2014 (105)</a></li>
+            <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>2013 (17)</a></li>
+        </ul>
+        {% endcomment %}
+    </div>
+    <!-- End single widget -->
+    <!-- start Single Widget -->
+    <div class="mu-sidebar-widget">
+        <h2 class="mu-sidebar-widget-title">Catagories</h2>
+        <ul class="mu-sidebar-widget-nav">
+            {% for cat in cat_menu %}
+                <li><a href="{% url 'category' cat.name %}"><i class="fa fa-angle-double-right" aria-hidden="true"></i>{{ cat }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <!-- End single widget -->
+    <!-- start Single Widget -->
+    <div class="mu-sidebar-widget">
+        <h2 class="mu-sidebar-widget-title">Tags</h2>
+        <div class="mu-tags">
+            <a href="#">Web Design</a>
+            <a href="#">Ecommerce</a>
+            <a href="#">Events</a>
+            <a href="#">Marketing</a>
+            <a href="#">UI</a>
+            <a href="#">UX</a>
+            <a href="#">Mobile app</a>
+            <a href="#">Web Development</a>
+            <a href="#">Graphics Design</a>
+            <a href="#">SEO</a>
+        </div>
+    </div>
+    <!-- End single widget -->
+    <!-- start Single Widget -->
+    <div class="mu-sidebar-widget mu-sidebar-subscribe-widget">
+        <h2 class="mu-sidebar-widget-title">News subscribe</h2>
+        <form class="mu-subscribe-form">
+            <input placeholder="Write your e-mail here" type="email">
+            <button class="mu-subscribe-btn">Subscribe</button>
+        </form>
+    </div>
+{% endblock %}

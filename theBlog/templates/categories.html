@@ -1,0 +1,226 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block title %} | Categories{% endblock %}
+{% block content %}
+    {% if category_posts %}
+        <h1>{{ cats}}</h1>
+
+            {% for post in category_posts %}
+            <article class="mu-blog-item">
+                {% if post.header_image %}
+                    <a href="{% url 'article-detail' post.pk %}"><img src="{{ post.header_image.url }}" width="100%" height="350"></a>
+                {% endif %}
+                <div class="mu-blog-item-content">
+                    <ul class="mu-blog-meta">
+                        <li>BY: <a href="{% url 'show_profile_page' post.author.profile.id %}"> {{ post.author.first_name }} {{ post.author.last_name }}</a>
+                            - Category - <a href="{% url 'category' post.category %}"> {{ post.category }}</a> </li>
+                        <li><a href="{% url 'add_comment' post.id %}"><i class="fa fa-comment-o"></i>{% if post.comments.count > 0 %}{{ post.comments.count }}{% else %}0{% endif %}</a></li>
+                        <li><i class="fa fa-thumbs-o-up"></i>{{ post.likes.count }}</li>
+                        {% if user.is_authenticated %}
+                        {% if user.id == post.author.id %}
+                            <li>
+                            <a href="{% url 'update_post' post.pk %}"><i class="fa fa-edit"></i> Edit</a></li>
+                            <li><a href="{% url 'delete_post' post.pk %}"><i class="fa fa-remove"></i> Delete</a></li>
+                        {% endif %}
+                    {% endif %}
+
+                    </ul>
+                    <h1 class="mu-blog-item-title"><a href="{% url 'article-detail' post.pk %}">{{ post.title }}</a></h1>
+                    <p>{{ post.snippet }}</p>
+                    <a class="mu-blg-readmore-btn" href="{% url 'article-detail' post.pk %}">Read more <i class="fa fa-long-arrow-right"></i></a>
+                </div>
+            </article>
+        {% endfor %}
+    {% else %}
+        <h2>Sorry this page doesn't exists..</h2>
+    {% endif %}
+{% endblock %}
+{% block sidebar %}
+    <div class="mu-sidebar-widget">
+        <form class="mu-search-form">
+            <input type="search" placeholder="Search">
+            <button class="mu-search-submit-btn" type="submit"><i class="fa fa-search"></i></button>
+        </form>
+    </div>
+    <!-- End single widget -->
+    <!-- start Single Widget -->
+    <div class="mu-sidebar-widget mu-sidebar-social-widget">
+        <h2 class="mu-sidebar-widget-title">Follow {{ user.first_name }} {{ user.last_name }} on</h2>
+        <div class="mu-social-media">
+            {% if user.profile.website_url %}
+                <a target="_blank" href="{{ user.profile.website_url }}"><i class="fa fa-link"></i></a>
+            {% endif %}
+            {% if user.profile.facebook_url %}
+                <a target="_blank" href="{{ user.profile.facebook_url }}"><i class="fa fa-facebook"></i></a>
+            {% endif %}
+            {% if user.profile.twitter_url %}
+                <a target="_blank" href="{{ user.profile.twitter_url }}"><i class="fa fa-twitter"></i></a>
+            {% endif %}
+            {% if user.profile.instagram_url %}
+                <a target="_blank" href="{{ user.profile.instagram_url }}"><i class="fa fa-instagram"></i></a>
+            {% endif %}
+            {% if user.profile.pinterest_url %}
+                <a target="_blank" href="{{ user.profile.pinterest_url }}"><i class="fa fa-pinterest-p"></i></a>
+            {% endif %}
+        </div>
+    </div>
+    <!-- End single widget -->
+    <!-- start Single Widget -->
+    <div class="mu-sidebar-widget">
+        <h2 class="mu-sidebar-widget-title">Catagories</h2>
+        <ul class="mu-sidebar-widget-nav">
+            {% for cat in category_names %}
+                <li><a href="{% url 'category' cat.name %}"><i class="fa fa-angle-double-right" aria-hidden="true"></i>{{ cat }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <!-- End single widget -->
+    <!-- start Single Widget -->
+    <div class="mu-sidebar-widget">
+        <h2 class="mu-sidebar-widget-title">Popular post</h2>
+        <div class="mu-popular-content-widget">
+            {% for pop in popular %}
+            <div class="media">
+            {% if pop.header_image %}
+                <a href="#" class="mu-popular-post-img"><img src="{{ pop.header_image.url }}" alt="image"></a>
+                {% else %}
+                    <a href="#" class="mu-popular-post-img"><img src="{% static 'theBlog/images/blog-img-1.jpg' %}" alt="image"></a>
+                {% endif %}
+                <div class="media-body">
+                    <ul class="mu-blog-meta">
+                        <li>{{ pop.post_date.date }} </li>
+                        <li><a href="#"><i class="fa fa-comment-o"></i>{% if pop.comments.count > 0 %}{{ pop.comments.count }}{% else %}0{% endif %}</a></li>
+                        <li><i class="fa fa-thumbs-o-up"></i>{{ pop.likes.count }}</li>
+                    </ul>
+                    <h3><a href="#">{{ pop.title }}</a></h3>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- End single widget -->
+    <!-- start Single Widget -->
+    <div class="mu-sidebar-widget">
+        <h2 class="mu-sidebar-widget-title">Blog archives</h2>
+        {% regroup post_list by post_date.year as year_list %}
+        <ul class="mu-sidebar-widget-nav">
+            {% for year in year_list %}
+                <li>{{ year.grouper }}
+                {% regroup year.list by post_date.month as month_list %}
+                    <ul>
+                        {% for month in month_list %}
+                            <li><a href="{% comment %}{% url 'blog:post_archive_month' year.grouper month.grouper %}{% endcomment %}">{{ month.list.0.post_date|date:'b' }} ({{ month.list|length }})</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+        {% comment %}
+        <ul class="mu-sidebar-widget-nav">
+            <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>2017 (10)</a></li>
+            <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>2016 (25)</a>
+                <ul>
+                    <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>December</a></li>
+                    <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>November</a></li>
+                    <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>October</a></li>
+                    <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>September</a></li>
+                </ul>
+            </li>
+            <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>2015 (86)</a></li>
+            <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>2014 (105)</a></li>
+            <li><a href="#"><i class="fa fa-angle-double-right" aria-hidden="true"></i>2013 (17)</a></li>
+        </ul>
+        {% endcomment %}
+    </div>
+    <!-- End single widget -->
+
+    <!-- start Single Widget -->
+    <div class="mu-sidebar-widget">
+        <h2 class="mu-sidebar-widget-title">Tags</h2>
+        <div class="mu-tags">
+            <a href="#">Web Design</a>
+            <a href="#">Ecommerce</a>
+            <a href="#">Events</a>
+            <a href="#">Marketing</a>
+            <a href="#">UI</a>
+            <a href="#">UX</a>
+            <a href="#">Mobile app</a>
+            <a href="#">Web Development</a>
+            <a href="#">Graphics Design</a>
+            <a href="#">SEO</a>
+        </div>
+    </div>
+    <!-- End single widget -->
+    <!-- start Single Widget -->
+    <div class="mu-sidebar-widget mu-sidebar-subscribe-widget">
+        <h2 class="mu-sidebar-widget-title">News subscribe</h2>
+        <form class="mu-subscribe-form">
+            <input placeholder="Write your e-mail here" type="email">
+            <button class="mu-subscribe-btn">Subscribe</button>
+        </form>
+    </div>
+{% endblock %}
+
+
+
+
+    <div class="card my-4">
+        <h5 class="card-header">Categories</h5>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-12">
+                    <ul class="list-unstyled mb-0">
+                        {% for cat in category_names %}
+                            <li>
+                                <h4><a class="dropdown-item" href="{% url 'category' cat.name %}"> {{ cat }}</a></h4>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card my-4">
+        <h5 class="card-header">Search</h5>
+        <div class="card-body">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Search for...">
+                <span class="input-group-append">
+                    <button class="btn btn-secondary" type="button">Go!</button>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="card my-4">
+        <h5 class="card-header">Side Widget</h5>
+        <div class="card-body">
+            You can put anything you want inside of these side widgets. They are easy to use, and feature the new Bootstrap 4 card containers!
+        </div>
+    </div>
+
+
+{% for post in category_posts %}
+            <div class="card mb-4">
+                {% if post.header_image %}
+                    <img class="card-img-top" src="{{ post.header_image.url }}" height="300" width="750">
+                {% endif %}
+                <div class="card-body">
+                    <h2 class="card-title">{{ post.title }}</h2>
+                    <p class="card-text">{{ post.snippet }}</p>
+                    <a href="{% url 'article-detail' post.pk %}" class="btn btn-primary">Read More &rarr;</a>
+                </div>
+                <div class="card-footer text-muted">
+                    Posted on {{ post.post_date }} by
+                    {% if user.is_authenticated %}
+                        <a class="btn btn-success btn-sm" href="{% url 'show_profile_page' post.author.profile.id %}">{{ post.author.first_name }} {{ post.author.last_name }}</a>
+                        {% if user.id == post.author.id %}
+                            - <small><a class="btn btn-secondary btn-sm" href="{% url 'update_post' post.pk %}">Edit</a>
+                            <a class="btn btn-danger btn-sm" href="{% url 'delete_post' post.pk %}">Delete</a></small>
+                        {% endif %}
+
+                    {% else %}
+                        {{ post.author.first_name }} {{ post.author.last_name }}
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
