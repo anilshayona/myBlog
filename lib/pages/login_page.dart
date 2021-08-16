@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:my_app/bg_image.dart';
-import 'package:my_app/pages/home_page.dart';
+import 'package:my_app/utils/Constants.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -10,6 +10,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final userNameController = TextEditingController();
   final passwordController = TextEditingController();
+  Constants c = new Constants();
 
   @override
   Widget build(BuildContext context) {
@@ -54,8 +55,9 @@ class _LoginPageState extends State<LoginPage> {
                           height: 20,
                         ),
                         ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushNamed(context, "/home");
+                          onPressed: () async {
+                            c.storeLoggedInStatus(true);
+                            Navigator.pushReplacementNamed(context, "/home");
                           },
                           child: Text("Sign In"),
                         )

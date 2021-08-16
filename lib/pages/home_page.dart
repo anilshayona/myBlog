@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:my_app/drawer.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:my_app/utils/Constants.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -11,6 +12,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   TextEditingController _nameController = TextEditingController();
   var myText = "Chenge Me";
+  Constants c = new Constants();
 
   var data;
 
@@ -35,6 +37,14 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
         title: Text("Awesome App"),
+        actions: [
+          IconButton(
+              onPressed: () async {
+                c.storeLoggedInStatus(false);
+                Navigator.pushReplacementNamed(context, "/login");
+              },
+              icon: Icon(Icons.logout))
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),

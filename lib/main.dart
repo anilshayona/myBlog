@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:my_app/pages/home_page.dart';
 import 'package:my_app/pages/login_page.dart';
+import 'package:my_app/utils/Constants.dart';
 
-void main() {
+Future main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  Constants c = new Constants();
+  bool loggedInStatus = await c.getLoggedInStatus();
+
   runApp(MaterialApp(
     title: "Awesome App",
-    home: LoginPage(),
+    home: loggedInStatus ? HomePage() : LoginPage(),
     theme: ThemeData(primarySwatch: Colors.purple),
     routes: {
       "/login": (context) => LoginPage(),
